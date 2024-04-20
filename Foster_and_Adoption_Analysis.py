@@ -54,3 +54,5 @@ reformat_row(terminated_df)
 reformat_row(adopted_df)
 print(served_df.head(5))
 print(served_df.columns)
+
+print(served_df.dtpyes)
