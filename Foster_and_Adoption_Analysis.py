@@ -72,7 +72,7 @@ total_adopted_per_year_df = total_adopted_per_year.to_frame().T
 #print(total_adopted_per_year_df)
 
 import matplotlib.pyplot as plt
-"""
+
 # Plot the total number of children served over the years
 plt.figure(figsize=(10, 6))
 plt.plot(total_served_per_year_df.columns.astype(int), total_served_per_year_df.values.flatten(), marker='o', linestyle='-')
@@ -82,7 +82,7 @@ plt.ylabel('Total Number of Children Served by the Foster Care System')
 plt.grid(True)
 plt.xticks(total_served_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 #Plot the number of children in-care at the end of each year
 plt.figure(figsize=(10, 6))
@@ -93,7 +93,7 @@ plt.ylabel('Total Number of Children Still In Care at the end of the Year')
 plt.grid(True)
 plt.xticks(total_in_care_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 #Plot of the number of children that are waiting to be adopted per year
 plt.figure(figsize=(10, 6))
@@ -104,7 +104,7 @@ plt.ylabel('Total Number of Children Waiting to be Adopted')
 plt.grid(True)
 plt.xticks(total_waiting_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 #Plot of the number of children that entered the foster care system per year
 plt.figure(figsize=(10, 6))
@@ -115,7 +115,7 @@ plt.ylabel('Total Number of Children Entering Foster Care')
 plt.grid(True)
 plt.xticks(total_entered_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 #Plot of the number of parental rights terminated per year
 plt.figure(figsize=(10, 6))
@@ -126,7 +126,7 @@ plt.ylabel('Total Number of Parental Rights Terminated')
 plt.grid(True)
 plt.xticks(total_terminated_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 # Plot the total number of children adopted over the years
 plt.figure(figsize=(10, 6))
@@ -137,15 +137,14 @@ plt.ylabel('Total Number of Children Adopted per Year')
 plt.grid(True)
 plt.xticks(total_adopted_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-plt.show()"""
+#plt.show()
 total_per_year_list = [total_entered_per_year_df, total_adopted_per_year_df, total_in_care_per_year_df, total_terminated_per_year_df, total_served_per_year_df, total_waiting_per_year_df]
 labels = ['Served', 'In Care', 'Entered', 'Waiting for Adoption', 'Terminated', 'Adopted']
 combined_df = pd.concat(total_per_year_list)
 # Plot the total number of children served per year for each dataframe
 plt.figure(figsize=(10, 6))
-for df, label in total_per_year_list:
-    if df.index.name:  # Check if index name is not empty
-        plt.plot(df.columns.astype(int), df.values.flatten(), label=label)
+for df, label in zip(total_per_year_list, labels):
+    plt.plot(df.columns.astype(int), df.values.flatten(), marker='o', linestyle='-', label=label)
 plt.title('Total Number of Children Served per Year')
 plt.xlabel('Year')
 plt.ylabel('Total Number of Children Served')
@@ -153,5 +152,23 @@ plt.grid(True)
 plt.legend()
 plt.xticks(df.columns.astype(int), rotation=45)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
+#Heatmap
+import geopandas as gpd
+
+# Load the shapefile of the United States
+usa = gpd.read_file("C:/Users/mpdes/Downloads/cb_2022_us_all_500k/cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
+
+# Filter out US territories
+usa_states = usa[~usa['NAME'].isin(['United States Virgin Islands', 'Guam', 'Puerto Rico', 'Commonwealth of the Northern Mariana Islands', 'American Samoa'])]
+
+# Merge the filtered shapefile with adoption data
+usa_adoption = usa_states.merge(adopted_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
+
+# Plot the map using the number of children adopted in 2022
+fig, ax = plt.subplots(1, 1, figsize=(42, 30))
+usa_adoption.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+plt.title('Number of Children Adopted in the United States (2022)')
+plt.axis('off')
+plt.show()
