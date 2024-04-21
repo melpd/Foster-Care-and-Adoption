@@ -70,7 +70,7 @@ adopted_df_excluding_pr_and_total = adopted_df[~adopted_df.index.str.contains('P
 total_adopted_per_year = adopted_df_excluding_pr_and_total.sum(axis=0)
 total_adopted_per_year_df = total_adopted_per_year.to_frame().T
 #print(total_adopted_per_year_df)
-
+"""
 import matplotlib.pyplot as plt
 
 # Plot the total number of children served over the years
@@ -172,3 +172,48 @@ usa_adoption.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0
 plt.title('Number of Children Adopted in the United States (2022)')
 plt.axis('off')
 plt.show()
+"""
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import mean_absolute_error
+train_data = adopted_df_excluding_pr_and_total.iloc[:-2]
+test_data = adopted_df_excluding_pr_and_total.iloc[-2:]
+
+# Example: Train the ARIMA model for each state
+for state in adopted_df_excluding_pr_and_total.columns:
+    # Train the ARIMA model
+    model = ARIMA(train_data[state], order=(1, 1, 1))
+    model_fit = model.fit()
+
+    # Make predictions on the test data
+    predictions = model_fit.forecast(steps=2)
+
+    # Evaluate the model
+    mae = mean_absolute_error(test_data[state], predictions)
+    print(f'Mean Absolute Error for {state}: {mae}')
+
+    # Forecast future values
+    future_forecast = model_fit.forecast(steps=2)
+    print(f'Forecast for {state} for next {2} years: {future_forecast}')
+"""
+# Forecasting
+# Forecasting with Non-Seasonal ARIMA
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
+
+# Splitting the data into features (X) and target variable (y)
+X = adopted_df_excluding_pr_and_total.drop(columns=[2022])  # Features (exclude the last year as target variable)
+y = adopted_df_excluding_pr_and_total[2022]  # Target variable (number of adoptions in 2022)
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Training a non-seasonal ARIMA model
+model = ARIMA(y_train, order=(1, 1, 1))
+model_fit = model.fit()
+#Making predictions on the test set
+y_pred = model_fit.predict(start=len(X_train), end=len(X_train) + len(X_test) - 1)
+#Evaluating the model
+mae = mean_absolute_error(y_test, y_pred)
+print(f'Mean Absolute Error: {mae}')
+# Example: Forecasting future values
+future_forecast = model_fit.forecast(steps=2)  # Forecasting 2 years into the future
+print(future_forecast)"""
