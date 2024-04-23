@@ -43,8 +43,8 @@ adopted_df = adopted_df.iloc[:-1]
 served_df_excluding_pr_and_total = served_df[~served_df.index.str.contains('Puerto Rico|Total')]
 total_served_per_year = served_df_excluding_pr_and_total.sum(axis=0)
 total_served_per_year_df = total_served_per_year.to_frame().T
-#print("Total Served per Year (Excluding Puerto Rico and Total):")
-#print(total_served_per_year_df)
+print("Total Served per Year (Excluding Puerto Rico and Total):")
+print(total_served_per_year_df)
 
 in_care_df_excluding_pr_and_total = in_care_df[~in_care_df.index.str.contains('Puerto Rico|Total')]
 total_in_care_per_year = in_care_df_excluding_pr_and_total.sum(axis=0)
@@ -70,7 +70,7 @@ adopted_df_excluding_pr_and_total = adopted_df[~adopted_df.index.str.contains('P
 total_adopted_per_year = adopted_df_excluding_pr_and_total.sum(axis=0)
 total_adopted_per_year_df = total_adopted_per_year.to_frame().T
 #print(total_adopted_per_year_df)
-"""
+
 import matplotlib.pyplot as plt
 
 # Plot the total number of children served over the years
@@ -82,7 +82,7 @@ plt.ylabel('Total Number of Children Served by the Foster Care System')
 plt.grid(True)
 plt.xticks(total_served_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 #Plot the number of children in-care at the end of each year
 plt.figure(figsize=(10, 6))
@@ -93,7 +93,7 @@ plt.ylabel('Total Number of Children Still In Care at the end of the Year')
 plt.grid(True)
 plt.xticks(total_in_care_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 #Plot of the number of children that are waiting to be adopted per year
 plt.figure(figsize=(10, 6))
@@ -104,7 +104,7 @@ plt.ylabel('Total Number of Children Waiting to be Adopted')
 plt.grid(True)
 plt.xticks(total_waiting_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 #Plot of the number of children that entered the foster care system per year
 plt.figure(figsize=(10, 6))
@@ -115,7 +115,7 @@ plt.ylabel('Total Number of Children Entering Foster Care')
 plt.grid(True)
 plt.xticks(total_entered_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 #Plot of the number of parental rights terminated per year
 plt.figure(figsize=(10, 6))
@@ -126,7 +126,7 @@ plt.ylabel('Total Number of Parental Rights Terminated')
 plt.grid(True)
 plt.xticks(total_terminated_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 # Plot the total number of children adopted over the years
 plt.figure(figsize=(10, 6))
@@ -137,9 +137,10 @@ plt.ylabel('Total Number of Children Adopted per Year')
 plt.grid(True)
 plt.xticks(total_adopted_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
-#plt.show()
+plt.show()
+
 total_per_year_list = [total_entered_per_year_df, total_adopted_per_year_df, total_in_care_per_year_df, total_terminated_per_year_df, total_served_per_year_df, total_waiting_per_year_df]
-labels = ['Served', 'In Care', 'Entered', 'Waiting for Adoption', 'Terminated', 'Adopted']
+labels = ['Entered', 'Adopted', 'In-Care', 'Terminated', 'Served', 'Waiting']
 combined_df = pd.concat(total_per_year_list)
 # Plot the total number of children served per year for each dataframe
 plt.figure(figsize=(10, 6))
@@ -152,7 +153,7 @@ plt.grid(True)
 plt.legend()
 plt.xticks(df.columns.astype(int), rotation=45)
 plt.tight_layout()
-#plt.show()
+plt.show()
 
 #Heatmap
 import geopandas as gpd
@@ -170,6 +171,41 @@ usa_adoption = usa_states.merge(adopted_df_excluding_pr_and_total, how='left', l
 fig, ax = plt.subplots(1, 1, figsize=(42, 30))
 usa_adoption.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
 plt.title('Number of Children Adopted in the United States (2022)')
+plt.axis('off')
+plt.show()
+
+usa_served = usa_states.merge(served_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
+fig, ax = plt.subplots(1, 1, figsize=(42, 30))
+usa_served.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+plt.title('Number of Children Served by the Foster Care System in the United States (2022)')
+plt.axis('off')
+plt.show()
+
+usa_in_care = usa_states.merge(in_care_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
+fig, ax = plt.subplots(1, 1, figsize=(42, 30))
+usa_adoption.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+plt.title('Number of In the Foster Care System in the United States (2022)')
+plt.axis('off')
+plt.show()
+
+usa_entered = usa_states.merge(entered_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
+fig, ax = plt.subplots(1, 1, figsize=(42, 30))
+usa_entered.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+plt.title('Number of Children that Entered the Foster Care System in the United States (2022)')
+plt.axis('off')
+plt.show()
+
+usa_waiting = usa_states.merge(waiting_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
+fig, ax = plt.subplots(1, 1, figsize=(42, 30))
+usa_adoption.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+plt.title('Number of Children Waiting to be Adopted in the United States (2022)')
+plt.axis('off')
+plt.show()
+
+usa_terminated = usa_states.merge(terminated_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
+fig, ax = plt.subplots(1, 1, figsize=(42, 30))
+usa_terminated.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+plt.title('Number of Children With Parental Rights Terminated in the United States (2022)')
 plt.axis('off')
 plt.show()
 """
@@ -194,7 +230,7 @@ for state in adopted_df_excluding_pr_and_total.columns:
     # Forecast future values
     future_forecast = model_fit.forecast(steps=2)
     print(f'Forecast for {state} for next {2} years: {future_forecast}')
-"""
+
 # Forecasting
 # Forecasting with Non-Seasonal ARIMA
 from statsmodels.tsa.arima.model import ARIMA
@@ -216,4 +252,5 @@ mae = mean_absolute_error(y_test, y_pred)
 print(f'Mean Absolute Error: {mae}')
 # Example: Forecasting future values
 future_forecast = model_fit.forecast(steps=2)  # Forecasting 2 years into the future
-print(future_forecast)"""
+print(future_forecast)
+"""
