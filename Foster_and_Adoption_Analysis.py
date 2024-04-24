@@ -70,7 +70,7 @@ adopted_df_excluding_pr_and_total = adopted_df[~adopted_df.index.str.contains('P
 total_adopted_per_year = adopted_df_excluding_pr_and_total.sum(axis=0)
 total_adopted_per_year_df = total_adopted_per_year.to_frame().T
 #print(total_adopted_per_year_df)
-
+"""
 import matplotlib.pyplot as plt
 
 # Plot the total number of children served over the years
@@ -208,11 +208,11 @@ usa_terminated.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor=
 plt.title('Number of Children With Parental Rights Terminated in the United States (2022)')
 plt.axis('off')
 plt.show()
-"""
+
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_absolute_error
-train_data = adopted_df_excluding_pr_and_total.iloc[:-2]
-test_data = adopted_df_excluding_pr_and_total.iloc[-2:]
+train_data = adopted_df_excluding_pr_and_total.iloc[:-1]
+test_data = adopted_df_excluding_pr_and_total.iloc[-1:]
 
 # Example: Train the ARIMA model for each state
 for state in adopted_df_excluding_pr_and_total.columns:
@@ -252,5 +252,24 @@ mae = mean_absolute_error(y_test, y_pred)
 print(f'Mean Absolute Error: {mae}')
 # Example: Forecasting future values
 future_forecast = model_fit.forecast(steps=2)  # Forecasting 2 years into the future
-print(future_forecast)
-"""
+print(future_forecast)"""
+from sklearn.model_selection import train_test_split
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import mean_absolute_error
+# Assuming your DataFrame is named 'df' with states as rows and years as columns
+# Split data into training and testing sets
+train_df, test_df = train_test_split(adopted_df_excluding_pr_and_total, test_size=0.2, random_state=42)  # Adjust test_size as needed
+
+# Loop over each state and fit ARIMA model
+for state, train_data in train_df.iterrows():
+    model = ARIMA(train_data.dropna(), order=(1 , 1, 1 ))  # Specify appropriate p, d, q values
+    fit_model = model.fit()
+    # Make forecasts for the testing set
+    test_data = test_df.loc[state].dropna()
+    forecast = fit_model.forecast(steps=len(test_data))
+    # Evaluate the model
+    print(f'Forecast for {state} for next {2} years: {forecast}')
+    mae = mean_absolute_error(test_data[state], forecast)
+    print(f'Mean Absolute Error for {state}: {mae}')
+
+
