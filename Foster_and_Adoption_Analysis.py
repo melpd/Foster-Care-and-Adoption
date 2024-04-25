@@ -30,6 +30,7 @@ entered_df = clean_dataframe(entered_df)
 waiting_df = clean_dataframe(waiting_df)
 terminated_df = clean_dataframe(terminated_df)
 adopted_df = clean_dataframe(adopted_df)
+exited_df = clean_dataframe(exited_df)
 
 served_df = served_df.iloc[:-1]
 in_care_df = in_care_df.iloc[:-1]
@@ -37,6 +38,7 @@ entered_df = entered_df.iloc[:-1]
 waiting_df = waiting_df.iloc[:-1]
 terminated_df = terminated_df.iloc[:-1]
 adopted_df = adopted_df.iloc[:-1]
+exited_df = exited_df.iloc[:-1]
 
 # Exploratory Data Analysis
 # Exclude rows corresponding to "Puerto Rico*" and "Total"
@@ -71,6 +73,10 @@ total_adopted_per_year = adopted_df_excluding_pr_and_total.sum(axis=0)
 total_adopted_per_year_df = total_adopted_per_year.to_frame().T
 #print(total_adopted_per_year_df)
 
+exited_df_excluding_pr_and_total = exited_df[~exited_df.index.str.contains('Puerto Rico|Total')]
+total_exited_per_year = exited_df_excluding_pr_and_total.sum(axis=0)
+total_exited_per_year_df = total_exited_per_year.to_frame().T
+print(total_adopted_per_year_df)
 import matplotlib.pyplot as plt
 """
 # Plot the total number of children served over the years
@@ -139,8 +145,19 @@ plt.xticks(total_adopted_per_year_df.columns.astype(int), rotation=45)
 plt.tight_layout()
 plt.show()
 
-total_per_year_list = [total_entered_per_year_df, total_adopted_per_year_df, total_in_care_per_year_df, total_terminated_per_year_df, total_served_per_year_df, total_waiting_per_year_df]
-labels = ['Entered', 'Adopted', 'In-Care', 'Terminated', 'Served', 'Waiting']
+# Plot the total number of children exiting over the years
+plt.figure(figsize=(10, 6))
+plt.plot(total_exited_per_year_df.columns.astype(int), total_exited_per_year_df.values.flatten(), marker='o', linestyle='-')
+plt.title('Total Number of Children Exiting Foster Care per Year (Excluding Puerto Rico)')
+plt.xlabel('Year')
+plt.ylabel('Total Number of Children Exiting Foster Care')
+plt.grid(True)
+plt.xticks(total_exiting_per_year_df.columns.astype(int), rotation=45)
+plt.tight_layout()
+plt.show()
+
+total_per_year_list = [total_exited_per_year_df ,total_entered_per_year_df, total_adopted_per_year_df, total_in_care_per_year_df, total_terminated_per_year_df, total_served_per_year_df, total_waiting_per_year_df]
+labels = ['Exited','Entered', 'Adopted', 'In-Care', 'Terminated', 'Served', 'Waiting']
 combined_df = pd.concat(total_per_year_list)
 # Plot the total number of children served per year for each dataframe
 plt.figure(figsize=(10, 6))
@@ -208,6 +225,13 @@ usa_terminated.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor=
 plt.title('Number of Children With Parental Rights Terminated in the United States (2022)')
 plt.axis('off')
 plt.show()
+
+usa_exited = usa_states.merge(exited_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
+fig, ax = plt.subplots(1, 1, figsize=(42, 30))
+usa_exited.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+plt.title('Number of Children Exiting Foster Care in the United States (2022)')
+plt.axis('off')
+plt.show()
 """
 
 from sklearn.model_selection import train_test_split
@@ -215,12 +239,11 @@ from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_absolute_error
 # Check if the data is stationary
 from statsmodels.tsa.stattools import adfuller
-
+#Determine if the data is stationary
 # Iterate over each column (year) in the DataFrame
 for year in adopted_df_excluding_pr_and_total.columns:
     # Perform ADF test for stationarity on the data for the current year
     result = adfuller(adopted_df_excluding_pr_and_total[year].dropna())
-    
     print(f'Year: {year}')
     print('ADF Statistic:', result[0])
     print('p-value:', result[1])
@@ -289,15 +312,113 @@ from statsmodels.tsa.arima.model import ARIMA
 
 # Loop over each state and fit ARIMA model
 for state, data in adopted_df_excluding_pr_and_total.iterrows():
-    train_data = data.dropna()  # Remove NaN values
+    train_data = data.dropna()
     # Convert index to DatetimeIndex with yearly frequency
-    start_year = 2013  # Assuming your data starts from 2013
-    end_year = 2022    # Assuming your data ends in 2022
+    start_year = 2013 
+    end_year = 2022
     years = range(start_year, end_year + 1)
     train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
     model = ARIMA(train_data, order=(1, 0, 1))
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=2)
-    # Do something with the forecast
-    print(state, forecast)
+    #print(state, forecast)
+    adopted_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
+    adopted_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
+#print(adopted_df_excluding_pr_and_total.head())
+
+for state, data in in_care_df_excluding_pr_and_total.iterrows():
+    train_data = data.dropna()
+    # Convert index to DatetimeIndex with yearly frequency
+    start_year = 2013 
+    end_year = 2022
+    years = range(start_year, end_year + 1)
+    train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
+    model = ARIMA(train_data, order=(1, 0, 1))
+    fit_model = model.fit()
+    # Make forecasts
+    forecast = fit_model.forecast(steps=2)
+    #print(state, forecast)
+    in_care_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
+    in_care_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
+#print(in_care_df_excluding_pr_and_total.head())
+
+for state, data in entered_df_excluding_pr_and_total.iterrows():
+    train_data = data.dropna()
+    # Convert index to DatetimeIndex with yearly frequency
+    start_year = 2013 
+    end_year = 2022
+    years = range(start_year, end_year + 1)
+    train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
+    model = ARIMA(train_data, order=(1, 0, 1))
+    fit_model = model.fit()
+    # Make forecasts
+    forecast = fit_model.forecast(steps=2)
+    #print(state, forecast)
+    entered_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
+    entered_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
+#print(entered_df_excluding_pr_and_total.head())
+
+for state, data in waiting_df_excluding_pr_and_total.iterrows():
+    train_data = data.dropna()
+    # Convert index to DatetimeIndex with yearly frequency
+    start_year = 2013 
+    end_year = 2022
+    years = range(start_year, end_year + 1)
+    train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
+    model = ARIMA(train_data, order=(1, 0, 1))
+    fit_model = model.fit()
+    # Make forecasts
+    forecast = fit_model.forecast(steps=2)
+    #print(state, forecast)
+    waiting_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
+    waiting_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
+#print(waiting_df_excluding_pr_and_total.head())
+
+for state, data in exited_df_excluding_pr_and_total.iterrows():
+    train_data = data.dropna()
+    # Convert index to DatetimeIndex with yearly frequency
+    start_year = 2013 
+    end_year = 2022
+    years = range(start_year, end_year + 1)
+    train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
+    model = ARIMA(train_data, order=(1, 0, 1))
+    fit_model = model.fit()
+    # Make forecasts
+    forecast = fit_model.forecast(steps=2)
+    #print(state, forecast)
+    exited_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
+    exited_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
+print(exited_df_excluding_pr_and_total.head())
+
+for state, data in terminated_df_excluding_pr_and_total.iterrows():
+    train_data = data.dropna()
+    # Convert index to DatetimeIndex with yearly frequency
+    start_year = 2013 
+    end_year = 2022
+    years = range(start_year, end_year + 1)
+    train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
+    model = ARIMA(train_data, order=(1, 0, 1))
+    fit_model = model.fit()
+    # Make forecasts
+    forecast = fit_model.forecast(steps=2)
+    #print(state, forecast)
+    terminated_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
+    terminated_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
+#print(terminated_df_excluding_pr_and_total.head())
+
+for state, data in served_df_excluding_pr_and_total.iterrows():
+    train_data = data.dropna()
+    # Convert index to DatetimeIndex with yearly frequency
+    start_year = 2013 
+    end_year = 2022
+    years = range(start_year, end_year + 1)
+    train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
+    model = ARIMA(train_data, order=(1, 0, 1))
+    fit_model = model.fit()
+    # Make forecasts
+    forecast = fit_model.forecast(steps=2)
+    #print(state, forecast)
+    served_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
+    served_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
+print(served_df_excluding_pr_and_total.head())
