@@ -70,9 +70,9 @@ adopted_df_excluding_pr_and_total = adopted_df[~adopted_df.index.str.contains('P
 total_adopted_per_year = adopted_df_excluding_pr_and_total.sum(axis=0)
 total_adopted_per_year_df = total_adopted_per_year.to_frame().T
 #print(total_adopted_per_year_df)
-"""
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+"""
 # Plot the total number of children served over the years
 plt.figure(figsize=(10, 6))
 plt.plot(total_served_per_year_df.columns.astype(int), total_served_per_year_df.values.flatten(), marker='o', linestyle='-')
@@ -208,68 +208,96 @@ usa_terminated.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor=
 plt.title('Number of Children With Parental Rights Terminated in the United States (2022)')
 plt.axis('off')
 plt.show()
+"""
 
-from statsmodels.tsa.arima.model import ARIMA
-from sklearn.metrics import mean_absolute_error
-train_data = adopted_df_excluding_pr_and_total.iloc[:-1]
-test_data = adopted_df_excluding_pr_and_total.iloc[-1:]
-
-# Example: Train the ARIMA model for each state
-for state in adopted_df_excluding_pr_and_total.columns:
-    # Train the ARIMA model
-    model = ARIMA(train_data[state], order=(1, 1, 1))
-    model_fit = model.fit()
-
-    # Make predictions on the test data
-    predictions = model_fit.forecast(steps=2)
-
-    # Evaluate the model
-    mae = mean_absolute_error(test_data[state], predictions)
-    print(f'Mean Absolute Error for {state}: {mae}')
-
-    # Forecast future values
-    future_forecast = model_fit.forecast(steps=2)
-    print(f'Forecast for {state} for next {2} years: {future_forecast}')
-
-# Forecasting
-# Forecasting with Non-Seasonal ARIMA
-from statsmodels.tsa.arima.model import ARIMA
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error
-
-# Splitting the data into features (X) and target variable (y)
-X = adopted_df_excluding_pr_and_total.drop(columns=[2022])  # Features (exclude the last year as target variable)
-y = adopted_df_excluding_pr_and_total[2022]  # Target variable (number of adoptions in 2022)
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-# Training a non-seasonal ARIMA model
-model = ARIMA(y_train, order=(1, 1, 1))
-model_fit = model.fit()
-#Making predictions on the test set
-y_pred = model_fit.predict(start=len(X_train), end=len(X_train) + len(X_test) - 1)
-#Evaluating the model
-mae = mean_absolute_error(y_test, y_pred)
-print(f'Mean Absolute Error: {mae}')
-# Example: Forecasting future values
-future_forecast = model_fit.forecast(steps=2)  # Forecasting 2 years into the future
-print(future_forecast)"""
 from sklearn.model_selection import train_test_split
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_absolute_error
-# Assuming your DataFrame is named 'df' with states as rows and years as columns
+# Check if the data is stationary
+from statsmodels.tsa.stattools import adfuller
+
+# Iterate over each column (year) in the DataFrame
+for year in adopted_df_excluding_pr_and_total.columns:
+    # Perform ADF test for stationarity on the data for the current year
+    result = adfuller(adopted_df_excluding_pr_and_total[year].dropna())
+    
+    print(f'Year: {year}')
+    print('ADF Statistic:', result[0])
+    print('p-value:', result[1])
+    print('Critical Values:')
+    for key, value in result[4].items():
+        print(f'   {key}: {value}')
+    print('\n')
+
+import itertools
+import matplotlib.pyplot as plt
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.arima.model import ARIMA
+"""
+# Function to determine the optimal (p, d, q) parameters for ARIMA using AIC
+def find_best_arima_parameters(train_data):
+    best_aic = float('inf')
+    best_order = None
+    
+    # Define the range of values for p and q
+    p_range = range(0, 5)  # Adjust the range as needed
+    q_range = range(0, 5)  # Adjust the range as needed
+    
+    # Iterate over all possible combinations of p and q
+    for p, q in itertools.product(p_range, q_range):
+        # Skip (0, 0) order as it's equivalent to a simple moving average model
+        if p == 0 and q == 0:
+            continue
+        
+        try:
+            # Fit ARIMA model
+            model = ARIMA(train_data, order=(p, 0, q))  # Assuming d=0 (data is stationary)
+            fit_model = model.fit()
+            
+            # Check if current model has lower AIC than the best so far
+            if fit_model.aic < best_aic:
+                best_aic = fit_model.aic
+                best_order = (p, 0, q)  # Assuming d=0
+        except:
+            continue
+    
+    return best_order
+
+# Plot ACF and PACF to determine p and q
+def plot_acf_pacf(train_data):
+    fig, ax = plt.subplots(2, 1, figsize=(12, 8))
+    plot_acf(train_data, ax=ax[0])
+    plot_pacf(train_data, ax=ax[1])
+    plt.show()
+
 # Split data into training and testing sets
-train_df, test_df = train_test_split(adopted_df_excluding_pr_and_total, test_size=0.2, random_state=42)  # Adjust test_size as needed
+train_df, test_df = train_test_split(adopted_df_excluding_pr_and_total, test_size=0.2, random_state=42)
+
+# Loop over each state
+for state, train_data in train_df.iterrows():
+    # Plot ACF and PACF
+    plot_acf_pacf(train_data)
+    
+    # Determine optimal (p, q) parameters using AIC
+    p, q = find_best_arima_parameters(train_data)
+    
+    print(f'Best (p, q) for {state}: ({p}, 0, {q})')  # Assuming d=0 for stationary data
+
+"""
+import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
 
 # Loop over each state and fit ARIMA model
-for state, train_data in train_df.iterrows():
-    model = ARIMA(train_data.dropna(), order=(1 , 1, 1 ))  # Specify appropriate p, d, q values
+for state, data in adopted_df_excluding_pr_and_total.iterrows():
+    train_data = data.dropna()  # Remove NaN values
+    # Convert index to DatetimeIndex with yearly frequency
+    start_year = 2013  # Assuming your data starts from 2013
+    end_year = 2022    # Assuming your data ends in 2022
+    years = range(start_year, end_year + 1)
+    train_data.index = pd.to_datetime([f'{year}-01-01' for year in years])
+    model = ARIMA(train_data, order=(1, 0, 1))
     fit_model = model.fit()
-    # Make forecasts for the testing set
-    test_data = test_df.loc[state].dropna()
-    forecast = fit_model.forecast(steps=len(test_data))
-    # Evaluate the model
-    print(f'Forecast for {state} for next {2} years: {forecast}')
-    mae = mean_absolute_error(test_data[state], forecast)
-    print(f'Mean Absolute Error for {state}: {mae}')
-
-
+    # Make forecasts
+    forecast = fit_model.forecast(steps=2)
+    # Do something with the forecast
+    print(state, forecast)
