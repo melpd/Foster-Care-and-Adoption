@@ -49,27 +49,22 @@ total_served_per_year_df = total_served_per_year.to_frame().T
 in_care_df_excluding_pr_and_total = in_care_df[~in_care_df.index.str.contains('Puerto Rico|Total')]
 total_in_care_per_year = in_care_df_excluding_pr_and_total.sum(axis=0)
 total_in_care_per_year_df = total_in_care_per_year.to_frame().T
-#print(total_in_care_per_year_df)
 
 entered_df_excluding_pr_and_total = entered_df[~entered_df.index.str.contains('Puerto Rico|Total')]
 total_entered_per_year = entered_df_excluding_pr_and_total.sum(axis=0)
 total_entered_per_year_df = total_entered_per_year.to_frame().T
-#print(total_entered_per_year_df)
 
 waiting_df_excluding_pr_and_total = waiting_df[~waiting_df.index.str.contains('Puerto Rico|Total')]
 total_waiting_per_year = waiting_df_excluding_pr_and_total.sum(axis=0)
 total_waiting_per_year_df = total_waiting_per_year.to_frame().T
-#print(total_waiting_per_year_df)
 
 terminated_df_excluding_pr_and_total = terminated_df[~terminated_df.index.str.contains('Puerto Rico|Total')]
 total_terminated_per_year = terminated_df_excluding_pr_and_total.sum(axis=0)
 total_terminated_per_year_df = total_terminated_per_year.to_frame().T
-#print(total_terminated_per_year_df)
 
 adopted_df_excluding_pr_and_total = adopted_df[~adopted_df.index.str.contains('Puerto Rico|Total')]
 total_adopted_per_year = adopted_df_excluding_pr_and_total.sum(axis=0)
 total_adopted_per_year_df = total_adopted_per_year.to_frame().T
-#print(total_adopted_per_year_df)
 
 exited_df_excluding_pr_and_total = exited_df[~exited_df.index.str.contains('Puerto Rico|Total')]
 total_exited_per_year = exited_df_excluding_pr_and_total.sum(axis=0)
@@ -176,10 +171,8 @@ import geopandas as gpd
 
 # Load the shapefile of the United States
 usa = gpd.read_file("C:/Users/mpdes/Downloads/cb_2022_us_all_500k/cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
-
 # Filter out US territories
 usa_states = usa[~usa['NAME'].isin(['United States Virgin Islands', 'Guam', 'Puerto Rico', 'Commonwealth of the Northern Mariana Islands', 'American Samoa'])]
-
 # Merge the filtered shapefile with adoption data
 usa_adoption = usa_states.merge(adopted_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
 
@@ -232,10 +225,8 @@ plt.title('Number of Children Exiting Foster Care in the United States (2022)')
 plt.axis('off')
 plt.show()
 """
-
-from sklearn.model_selection import train_test_split
 from statsmodels.tsa.arima.model import ARIMA
-from sklearn.metrics import mean_absolute_error
+
 # Check if the data is stationary
 from statsmodels.tsa.stattools import adfuller
 #Determine if the data is stationary
@@ -321,7 +312,6 @@ for state, data in adopted_df_excluding_pr_and_total.iterrows():
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=3)
-    #print(state, forecast)
     adopted_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     adopted_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     adopted_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
@@ -339,7 +329,6 @@ for state, data in in_care_df_excluding_pr_and_total.iterrows():
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=3)
-    #print(state, forecast)
     in_care_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     in_care_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     in_care_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
@@ -356,7 +345,6 @@ for state, data in entered_df_excluding_pr_and_total.iterrows():
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=3)
-    #print(state, forecast)
     entered_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     entered_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     entered_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
@@ -373,7 +361,6 @@ for state, data in waiting_df_excluding_pr_and_total.iterrows():
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=3)
-    #print(state, forecast)
     waiting_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     waiting_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     waiting_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
@@ -390,7 +377,6 @@ for state, data in exited_df_excluding_pr_and_total.iterrows():
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=3)
-    #print(state, forecast)
     exited_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     exited_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     exited_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
@@ -407,7 +393,6 @@ for state, data in terminated_df_excluding_pr_and_total.iterrows():
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=3)
-    #print(state, forecast)
     terminated_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     terminated_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     terminated_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
@@ -424,7 +409,6 @@ for state, data in served_df_excluding_pr_and_total.iterrows():
     fit_model = model.fit()
     # Make forecasts
     forecast = fit_model.forecast(steps=3)
-    #print(state, forecast)
     served_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     served_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     served_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
@@ -524,7 +508,6 @@ plt.show()
 
 total_per_year_list = [total_exited_per_year_df ,total_entered_per_year_df, total_adopted_per_year_df, total_in_care_per_year_df, total_terminated_per_year_df, total_served_per_year_df, total_waiting_per_year_df]
 labels = ['Exited','Entered', 'Adopted', 'In-Care', 'Terminated', 'Served', 'Waiting']
-combined_df = pd.concat(total_per_year_list)
 # Plot the total number of children served per year for each dataframe
 plt.figure(figsize=(10, 6))
 for df, label in zip(total_per_year_list, labels):
