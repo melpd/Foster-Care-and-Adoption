@@ -175,7 +175,7 @@ usa = gpd.read_file("C:/Users/mpdes/Downloads/cb_2022_us_all_500k/cb_2022_us_sta
 usa_states = usa[~usa['NAME'].isin(['United States Virgin Islands', 'Guam', 'Puerto Rico', 'Commonwealth of the Northern Mariana Islands', 'American Samoa'])]
 # Merge the filtered shapefile with adoption data
 usa_adoption = usa_states.merge(adopted_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
-"""
+
 # Plot the map using the number of children adopted in 2022
 fig, ax = plt.subplots(1, 1, figsize=(42, 30))
 usa_adoption.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
@@ -224,8 +224,6 @@ usa_exited.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8
 plt.title('Number of Children Exiting Foster Care in the United States (2022)')
 plt.axis('off')
 plt.show()
-"""
-from statsmodels.tsa.arima.model import ARIMA
 
 # Check if the data is stationary
 from statsmodels.tsa.stattools import adfuller
@@ -242,62 +240,8 @@ for year in adopted_df_excluding_pr_and_total.columns:
         print(f'   {key}: {value}')
     print('\n')
 
-import itertools
+
 import matplotlib.pyplot as plt
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-from statsmodels.tsa.arima.model import ARIMA
-"""
-# Function to determine the optimal (p, d, q) parameters for ARIMA using AIC
-def find_best_arima_parameters(train_data):
-    best_aic = float('inf')
-    best_order = None
-    
-    # Define the range of values for p and q
-    p_range = range(0, 5)  # Adjust the range as needed
-    q_range = range(0, 5)  # Adjust the range as needed
-    
-    # Iterate over all possible combinations of p and q
-    for p, q in itertools.product(p_range, q_range):
-        # Skip (0, 0) order as it's equivalent to a simple moving average model
-        if p == 0 and q == 0:
-            continue
-        
-        try:
-            # Fit ARIMA model
-            model = ARIMA(train_data, order=(p, 0, q))  # Assuming d=0 (data is stationary)
-            fit_model = model.fit()
-            
-            # Check if current model has lower AIC than the best so far
-            if fit_model.aic < best_aic:
-                best_aic = fit_model.aic
-                best_order = (p, 0, q)  # Assuming d=0
-        except:
-            continue
-    
-    return best_order
-
-# Plot ACF and PACF to determine p and q
-def plot_acf_pacf(train_data):
-    fig, ax = plt.subplots(2, 1, figsize=(12, 8))
-    plot_acf(train_data, ax=ax[0])
-    plot_pacf(train_data, ax=ax[1])
-    plt.show()
-
-# Split data into training and testing sets
-train_df, test_df = train_test_split(adopted_df_excluding_pr_and_total, test_size=0.2, random_state=42)
-
-# Loop over each state
-for state, train_data in train_df.iterrows():
-    # Plot ACF and PACF
-    plot_acf_pacf(train_data)
-    
-    # Determine optimal (p, q) parameters using AIC
-    p, q = find_best_arima_parameters(train_data)
-    
-    print(f'Best (p, q) for {state}: ({p}, 0, {q})')  # Assuming d=0 for stationary data
-
-"""
-import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 
 # Loop over each state and fit ARIMA model
@@ -316,8 +260,6 @@ for state, data in adopted_df_excluding_pr_and_total.iterrows():
     adopted_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     adopted_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
 
-#print(adopted_df_excluding_pr_and_total.head())
-
 for state, data in in_care_df_excluding_pr_and_total.iterrows():
     train_data = data.dropna()
     # Convert index to DatetimeIndex with yearly frequency
@@ -332,7 +274,6 @@ for state, data in in_care_df_excluding_pr_and_total.iterrows():
     in_care_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     in_care_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     in_care_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
-#print(in_care_df_excluding_pr_and_total.head())
 
 for state, data in entered_df_excluding_pr_and_total.iterrows():
     train_data = data.dropna()
@@ -348,7 +289,6 @@ for state, data in entered_df_excluding_pr_and_total.iterrows():
     entered_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     entered_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     entered_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
-#print(entered_df_excluding_pr_and_total.head())
 
 for state, data in waiting_df_excluding_pr_and_total.iterrows():
     train_data = data.dropna()
@@ -364,7 +304,6 @@ for state, data in waiting_df_excluding_pr_and_total.iterrows():
     waiting_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     waiting_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     waiting_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
-#print(waiting_df_excluding_pr_and_total.head())
 
 for state, data in exited_df_excluding_pr_and_total.iterrows():
     train_data = data.dropna()
@@ -381,7 +320,6 @@ for state, data in exited_df_excluding_pr_and_total.iterrows():
     exited_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     exited_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
 
-
 for state, data in terminated_df_excluding_pr_and_total.iterrows():
     train_data = data.dropna()
     # Convert index to DatetimeIndex with yearly frequency
@@ -396,7 +334,6 @@ for state, data in terminated_df_excluding_pr_and_total.iterrows():
     terminated_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     terminated_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     terminated_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
-#print(terminated_df_excluding_pr_and_total.head())
 
 for state, data in served_df_excluding_pr_and_total.iterrows():
     train_data = data.dropna()
@@ -412,7 +349,6 @@ for state, data in served_df_excluding_pr_and_total.iterrows():
     served_df_excluding_pr_and_total.loc[state, 2023] = forecast.iloc[0]
     served_df_excluding_pr_and_total.loc[state, 2024] = forecast.iloc[1]
     served_df_excluding_pr_and_total.loc[state, 2025] = forecast.iloc[2]
-print(served_df_excluding_pr_and_total.head())
 
 #Heatmaps of Updated Predictions
 # Plot the total number of children served over the years
@@ -526,7 +462,7 @@ import geopandas as gpd
 
 # Load the shapefile of the United States
 usa = gpd.read_file("C:/Users/mpdes/Downloads/cb_2022_us_all_500k/cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
-"""
+
 # Filter out US territories
 usa_states = usa[~usa['NAME'].isin(['United States Virgin Islands', 'Guam', 'Puerto Rico', 'Commonwealth of the Northern Mariana Islands', 'American Samoa'])]
 
@@ -581,22 +517,23 @@ usa_exited.plot(column=2025, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8
 plt.title('Number of Children Exiting Foster Care in the United States (2025)')
 plt.axis('off')
 plt.show()
-"""
+
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
 dfs = [adopted_df_excluding_pr_and_total, served_df_excluding_pr_and_total, waiting_df_excluding_pr_and_total, terminated_df_excluding_pr_and_total, entered_df_excluding_pr_and_total, exited_df_excluding_pr_and_total, in_care_df_excluding_pr_and_total]
+
 #Normalize Each Data Frame
 scaler = StandardScaler()
 normalized_dfs = [scaler.fit_transform(df) for df in dfs]
 # Cluster Each Normalized Data Frame
-kmeans = KMeans(n_clusters=4)
+kmeans = KMeans(n_clusters=4, random_state=42)
 cluster_results = [kmeans.fit_predict(df) for df in normalized_dfs]
 # Combine Cluster Memberships
 combined_clusters = pd.concat([pd.Series(cluster) for cluster in cluster_results], axis=1)
 # Apply Clustering to Combined Representations
-final_kmeans = KMeans(n_clusters=4)
+final_kmeans = KMeans(n_clusters=5)
 final_clusters = final_kmeans.fit_predict(combined_clusters)
 usa_map = usa.merge(pd.DataFrame(final_clusters, columns=['Cluster']), left_index=True, right_index=True)
 
@@ -608,20 +545,12 @@ plt.show()
 
 # Get cluster centers
 cluster_centers = final_kmeans.cluster_centers_
-
-# Convert to DataFrame for easier analysis
 cluster_centers_df = pd.DataFrame(cluster_centers, columns=combined_clusters.columns)
-
 # Print cluster centers (average feature values)
 print("Cluster Centers:")
 print(cluster_centers_df)
-
 # Group states by cluster and analyze characteristics
 for cluster_label in range(final_kmeans.n_clusters):
     states_in_cluster = combined_clusters.index[final_clusters == cluster_label]
     print(f"\nCluster {cluster_label}:")
     print(f"States: {states_in_cluster}")
-    # Optionally, print summary statistics or visualize characteristics of states within each cluster
-    # For example:
-    # print("Summary statistics:")
-    # print(combined_clusters.loc[states_in_cluster].describe())
