@@ -40,39 +40,39 @@ terminated_df = terminated_df.iloc[:-1]
 adopted_df = adopted_df.iloc[:-1]
 exited_df = exited_df.iloc[:-1]
 
-# Exploratory Data Analysis
 # Exclude rows corresponding to "Puerto Rico*" and "Total"
 served_df_excluding_pr_and_total = served_df[~served_df.index.str.contains('Puerto Rico|Total')]
+in_care_df_excluding_pr_and_total = in_care_df[~in_care_df.index.str.contains('Puerto Rico|Total')]
+entered_df_excluding_pr_and_total = entered_df[~entered_df.index.str.contains('Puerto Rico|Total')]
+waiting_df_excluding_pr_and_total = waiting_df[~waiting_df.index.str.contains('Puerto Rico|Total')]
+terminated_df_excluding_pr_and_total = terminated_df[~terminated_df.index.str.contains('Puerto Rico|Total')]
+adopted_df_excluding_pr_and_total = adopted_df[~adopted_df.index.str.contains('Puerto Rico|Total')]
+exited_df_excluding_pr_and_total = exited_df[~exited_df.index.str.contains('Puerto Rico|Total')]
+
+# Exploratory Data Analysis
 total_served_per_year = served_df_excluding_pr_and_total.sum(axis=0)
 total_served_per_year_df = total_served_per_year.to_frame().T
 
-in_care_df_excluding_pr_and_total = in_care_df[~in_care_df.index.str.contains('Puerto Rico|Total')]
 total_in_care_per_year = in_care_df_excluding_pr_and_total.sum(axis=0)
 total_in_care_per_year_df = total_in_care_per_year.to_frame().T
 
-entered_df_excluding_pr_and_total = entered_df[~entered_df.index.str.contains('Puerto Rico|Total')]
 total_entered_per_year = entered_df_excluding_pr_and_total.sum(axis=0)
 total_entered_per_year_df = total_entered_per_year.to_frame().T
 
-waiting_df_excluding_pr_and_total = waiting_df[~waiting_df.index.str.contains('Puerto Rico|Total')]
 total_waiting_per_year = waiting_df_excluding_pr_and_total.sum(axis=0)
 total_waiting_per_year_df = total_waiting_per_year.to_frame().T
 
-terminated_df_excluding_pr_and_total = terminated_df[~terminated_df.index.str.contains('Puerto Rico|Total')]
 total_terminated_per_year = terminated_df_excluding_pr_and_total.sum(axis=0)
 total_terminated_per_year_df = total_terminated_per_year.to_frame().T
 
-adopted_df_excluding_pr_and_total = adopted_df[~adopted_df.index.str.contains('Puerto Rico|Total')]
 total_adopted_per_year = adopted_df_excluding_pr_and_total.sum(axis=0)
 total_adopted_per_year_df = total_adopted_per_year.to_frame().T
 
-exited_df_excluding_pr_and_total = exited_df[~exited_df.index.str.contains('Puerto Rico|Total')]
 total_exited_per_year = exited_df_excluding_pr_and_total.sum(axis=0)
 total_exited_per_year_df = total_exited_per_year.to_frame().T
-print(total_exited_per_year_df)
 
 import matplotlib.pyplot as plt
-"""
+
 # Plot the total number of children served over the years
 plt.figure(figsize=(10, 6))
 plt.plot(total_served_per_year_df.columns.astype(int), total_served_per_year_df.values.flatten(), marker='o', linestyle='-')
@@ -175,7 +175,7 @@ usa = gpd.read_file("C:/Users/mpdes/Downloads/cb_2022_us_all_500k/cb_2022_us_sta
 usa_states = usa[~usa['NAME'].isin(['United States Virgin Islands', 'Guam', 'Puerto Rico', 'Commonwealth of the Northern Mariana Islands', 'American Samoa'])]
 # Merge the filtered shapefile with adoption data
 usa_adoption = usa_states.merge(adopted_df_excluding_pr_and_total, how='left', left_on='NAME', right_index=True)
-
+"""
 # Plot the map using the number of children adopted in 2022
 fig, ax = plt.subplots(1, 1, figsize=(42, 30))
 usa_adoption.plot(column=2022, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
@@ -526,7 +526,7 @@ import geopandas as gpd
 
 # Load the shapefile of the United States
 usa = gpd.read_file("C:/Users/mpdes/Downloads/cb_2022_us_all_500k/cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
-
+"""
 # Filter out US territories
 usa_states = usa[~usa['NAME'].isin(['United States Virgin Islands', 'Guam', 'Puerto Rico', 'Commonwealth of the Northern Mariana Islands', 'American Samoa'])]
 
@@ -581,3 +581,47 @@ usa_exited.plot(column=2025, cmap='YlGnBu', linewidth=0.8, ax=ax, edgecolor='0.8
 plt.title('Number of Children Exiting Foster Care in the United States (2025)')
 plt.axis('off')
 plt.show()
+"""
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
+dfs = [adopted_df_excluding_pr_and_total, served_df_excluding_pr_and_total, waiting_df_excluding_pr_and_total, terminated_df_excluding_pr_and_total, entered_df_excluding_pr_and_total, exited_df_excluding_pr_and_total, in_care_df_excluding_pr_and_total]
+#Normalize Each Data Frame
+scaler = StandardScaler()
+normalized_dfs = [scaler.fit_transform(df) for df in dfs]
+# Cluster Each Normalized Data Frame
+kmeans = KMeans(n_clusters=4)
+cluster_results = [kmeans.fit_predict(df) for df in normalized_dfs]
+# Combine Cluster Memberships
+combined_clusters = pd.concat([pd.Series(cluster) for cluster in cluster_results], axis=1)
+# Apply Clustering to Combined Representations
+final_kmeans = KMeans(n_clusters=4)
+final_clusters = final_kmeans.fit_predict(combined_clusters)
+usa_map = usa.merge(pd.DataFrame(final_clusters, columns=['Cluster']), left_index=True, right_index=True)
+
+# Plot the heatmap
+fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+usa_map.plot(column='Cluster', cmap='viridis', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True)
+ax.set_title('Clustered States based on Foster Care System Trends')
+plt.show()
+
+# Get cluster centers
+cluster_centers = final_kmeans.cluster_centers_
+
+# Convert to DataFrame for easier analysis
+cluster_centers_df = pd.DataFrame(cluster_centers, columns=combined_clusters.columns)
+
+# Print cluster centers (average feature values)
+print("Cluster Centers:")
+print(cluster_centers_df)
+
+# Group states by cluster and analyze characteristics
+for cluster_label in range(final_kmeans.n_clusters):
+    states_in_cluster = combined_clusters.index[final_clusters == cluster_label]
+    print(f"\nCluster {cluster_label}:")
+    print(f"States: {states_in_cluster}")
+    # Optionally, print summary statistics or visualize characteristics of states within each cluster
+    # For example:
+    # print("Summary statistics:")
+    # print(combined_clusters.loc[states_in_cluster].describe())
