@@ -572,12 +572,12 @@ dfs = [adopted_df_excluding_pr_and_total, served_df_excluding_pr_and_total, wait
 scaler = StandardScaler()
 normalized_dfs = [scaler.fit_transform(df) for df in dfs]
 # Cluster Each Normalized Data Frame
-kmeans = KMeans(n_clusters=4, random_state=42)
+kmeans = KMeans(n_clusters=5, random_state=42)
 cluster_results = [kmeans.fit_predict(df) for df in normalized_dfs]
 # Combine Cluster Memberships
 combined_clusters = pd.concat([pd.Series(cluster) for cluster in cluster_results], axis=1)
 # Apply Clustering to Combined Representations
-final_kmeans = KMeans(n_clusters=5)
+final_kmeans = KMeans(n_clusters=5, random_state= 42)
 final_clusters = final_kmeans.fit_predict(combined_clusters)
 usa_map = usa.merge(pd.DataFrame(final_clusters, columns=['Cluster']), left_index=True, right_index=True)
 
