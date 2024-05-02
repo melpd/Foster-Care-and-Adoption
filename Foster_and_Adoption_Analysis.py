@@ -240,7 +240,53 @@ for year in adopted_df_excluding_pr_and_total.columns:
         print(f'   {key}: {value}')
     print('\n')
 
+import itertools
+import matplotlib.pyplot as plt
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from sklearn.model_selection import train_test_split
+"""
+# Function to determine the optimal (p, d, q) parameters for ARIMA using AIC
+def find_best_arima_parameters(train_data):
+    best_aic = float('inf')
+    best_order = None
+    # Define the range of values for p and q
+    p_range = range(0, 10)
+    q_range = range(0, 10)
+    # Iterate over all possible combinations of p and q
+    for p, q in itertools.product(p_range, q_range):
+        # Skip (0, 0) order as it's equivalent to a simple moving average model
+        if p == 0 and q == 0:
+            continue
+        try:
+            # Fit ARIMA model
+            model = ARIMA(train_data, order=(p, 0, q))
+            fit_model = model.fit()
+            # Check if current model has lower AIC than the best so far
+            if fit_model.aic < best_aic:
+                best_aic = fit_model.aic
+                best_order = (p, 0, q)
+        except:
+            continue
+    
+    return best_order
+# Plot ACF and PACF to determine p and q
+def plot_acf_pacf(train_data):
+    fig, ax = plt.subplots(2, 1, figsize=(12, 8))
+    plot_acf(train_data, ax=ax[0])
+    plot_pacf(train_data, ax=ax[1])
+    plt.show()
 
+# Split data into training and testing sets
+train_df, test_df = train_test_split(adopted_df_excluding_pr_and_total, test_size=0.2, random_state=42)
+
+# Loop over each state
+for state, train_data in train_df.iterrows():
+    # Plot ACF and PACF
+    plot_acf_pacf(train_data)
+    # Determine optimal (p, q) parameters using AIC
+    p, d, q = find_best_arima_parameters(train_data)
+    print(f'Best (p, q) for {state}: ({p}, 0, {q})')
+"""
 import matplotlib.pyplot as plt
 from statsmodels.tsa.arima.model import ARIMA
 
@@ -518,12 +564,10 @@ plt.title('Number of Children Exiting Foster Care in the United States (2025)')
 plt.axis('off')
 plt.show()
 
-import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
 dfs = [adopted_df_excluding_pr_and_total, served_df_excluding_pr_and_total, waiting_df_excluding_pr_and_total, terminated_df_excluding_pr_and_total, entered_df_excluding_pr_and_total, exited_df_excluding_pr_and_total, in_care_df_excluding_pr_and_total]
-
 #Normalize Each Data Frame
 scaler = StandardScaler()
 normalized_dfs = [scaler.fit_transform(df) for df in dfs]
